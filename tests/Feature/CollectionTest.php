@@ -12,6 +12,7 @@ use Tests\TestCase;
 use function PHPUnit\Framework\assertEquals;
 use function PHPUnit\Framework\assertEqualsCanonicalizing;
 use function PHPUnit\Framework\assertEqualsWithDelta;
+use function PHPUnit\Framework\assertFalse;
 use function PHPUnit\Framework\assertTrue;
 
 class CollectionTest extends TestCase
@@ -379,6 +380,66 @@ class CollectionTest extends TestCase
         assertEqualsCanonicalizing([6,7,8,9],$res3->all()); 
     }
 
-    
+    function testChunked() {
+        $coll = collect([1,2,3,4,5,6,7,8,9]);
+        /*membagi collection dengan angka 4 , 
+        dan di setiap collection baru index nya menggunakan index sebelum di chunk,
+        tidak mulai lagi dari 0 */
+        $res = $coll->chunk(4); 
+        // dd($res->all()[0]->all());
+        assertEquals([1,2,3,4],$res->all()[0]->all());
+        assertEqualsCanonicalizing([5,6,7,8],$res->all()[1]->all());
+        assertEqualsCanonicalizing([9],$res->all()[2]->all());
+    }
+
+    function testFirst() {
+        $coll = collect([1,2,3,4,5,6,7,8,9]);
+        $res = $coll->first(); //mengambil value pertama tanpa ada kondisi, jika tidak ada data maka akan mengembalikan null
+        // dd($res);
+        assertEquals(1,$res);
+
+        $res2 = $coll->first(function ($item) {
+            return $item % 2 == 0 ; //mengambil value pertama yang sesuai dengan kondisi
+        });
+        assertEquals(2,$res2);
+    }
+
+    function testLast() {
+        $coll = collect([1,2,3,4,5,6,7,8,9]);
+        $res = $coll->last(); //mengambil value terakhir tanpa ada kondisi, jika tidak ada data maka akan mengembalikan null
+        // dd($res);
+        assertEquals(9,$res);
+
+        $res2 = $coll->last(function ($item) {
+            return $item % 2 == 0 ; //mengambil value terakhir yang sesuai dengan kondisi
+        });
+        assertEquals(8,$res2);
+    }
+
+    function testRandom() {
+        $coll = collect([1,2,3,4,5,6,7,8,9]);
+        $res = $coll->random(); //mengambil hanya 1 data random dr collection
+        assertTrue(in_array($res,[1,2,3,4,5,6,7,8,9]));
+        // dd($res);
+        // $res2 = $coll->random(5); //mengembalikan value random ke dalam bentuk colletion 
+        // dd($res2);
+        // assertTrue($res2->hasAny($coll));
+    }
+
+    function testCheckingExistence() {
+        // buat ngecek ada atau tidak nya sebuah data
+        $coll = collect([1,2,3,4,5,6,7,8,9]);
+        assertTrue($coll->isNotEmpty());
+        assertFalse($coll->isEmpty());
+        assertTrue($coll->contains(1));
+        assertFalse($coll->contains(100));
+        assertTrue($coll->contains(function ($item) {
+            return $item % 2 == 0;
+        }));
+    }
+
+    function testOrdering() {
+        
+    }
 }
 
