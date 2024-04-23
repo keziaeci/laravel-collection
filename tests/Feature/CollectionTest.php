@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Data\Person;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\LazyCollection;
 use PDO;
 use PHPUnit\Event\TestSuite\TestSuiteForTestMethodWithDataProvider;
 use Tests\TestCase;
@@ -13,6 +14,7 @@ use function PHPUnit\Framework\assertEquals;
 use function PHPUnit\Framework\assertEqualsCanonicalizing;
 use function PHPUnit\Framework\assertEqualsWithDelta;
 use function PHPUnit\Framework\assertFalse;
+use function PHPUnit\Framework\assertSame;
 use function PHPUnit\Framework\assertTrue;
 
 class CollectionTest extends TestCase
@@ -439,7 +441,61 @@ class CollectionTest extends TestCase
     }
 
     function testOrdering() {
+        $coll = collect([1,3,2,4,5,9,6,8,7]);
+        //walau pun mengurutkan, index tidak berubah dan index akan ikut teracak sesuai posisi item
+        $res = $coll->sort();
+        // dd($res->all()); 
+        assertEqualsCanonicalizing([1,2,3,4,5,6,7,8,9],$res->all());
         
+        $res2 = $coll->sortDesc();
+        assertEqualsCanonicalizing([9,8,7,6,5,4,3,2,1],$res2->all());
+    }
+
+    function testAggregat() {
+        $coll = collect([1,2,3,4,5,6,7,8,9]);
+        $min = $coll->min();
+        assertEquals(1,$min);
+        
+        $max = $coll->max();
+        assertEquals(9,$max);
+        
+        // dd($avg);
+        $avg = $coll->average();
+        assertEquals(5,$avg);
+        
+        $sum = $coll->sum(); //menjumlahkah semua value
+        assertEquals(45,$sum);
+        
+        $count = $coll->count(); //menghitung banyaknya value
+        assertEquals(9,$count);
+    }
+
+    function testReduce() {
+        $coll = collect([1,2,3,4,5,6,7,8,9]);
+        $res = $coll->reduce(function ($carry, $item) {
+            return $carry + $item;
+        });
+        // entah gunanya secara sepesifik apa , tapi bisa buat custom operasi matematika?
+        assertEquals(45,$res);
+    }
+
+    function testLazyCollection() {
+        /* The above code is creating a lazy collection in PHP using a generator function. The
+        `LazyCollection::make()` method is used to create a lazy collection that generates an infinite
+        sequence of numbers starting from 0. The `yield` keyword is used to yield each value in the
+        sequence, and the value is incremented in each iteration of the generator function. This
+        allows for efficient iteration over the collection without generating all values upfront. */
+        $coll = LazyCollection::make(function () {
+            $value = 0;
+            while (true) {
+                yield $value;
+                $value++;
+            }
+        });
+
+        $res = $coll->take(10);
+        dd($res);
+        assertEqualsCanonicalizing([0,1,2,3,4,5,6,7,8,9],$res->all());
     }
 }
 
